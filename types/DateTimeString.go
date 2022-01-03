@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	layoutDateTime string = "2006-01-02T15:04:05.000Z"
+	layoutDateTime  string = "2006-01-02T15:04:05.000000+00:00"
+	layoutDateTime2 string = "2006-01-02 15:04:05.000000+00:00"
 )
 
 type DateTimeString time.Time
@@ -27,14 +28,17 @@ func (d *DateTimeString) UnmarshalJSON(b []byte) error {
 		return returnError()
 	}
 
-	if s == "" || s == "0000-00-00 00:00:00.000" {
+	if s == "" || s == "0000-00-00T00:00:00.000000+00:00" || s == "0000-00-0000:00:00.000000+00:00" {
 		d = nil
 		return nil
 	}
 
 	_t, err := time.Parse(layoutDateTime, s)
 	if err != nil {
-		return returnError()
+		_t, err = time.Parse(layoutDateTime2, s)
+		if err != nil {
+			return returnError()
+		}
 	}
 
 	*d = DateTimeString(_t)
