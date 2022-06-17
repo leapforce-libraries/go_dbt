@@ -10,11 +10,11 @@ import (
 )
 
 type Job struct {
-	AccountID     int64    `json:"account_id"`
-	ProjectID     int64    `json:"project_id"`
-	EnvironmentID int64    `json:"environment_id"`
+	AccountId     int64    `json:"account_id"`
+	ProjectId     int64    `json:"project_id"`
+	EnvironmentId int64    `json:"environment_id"`
 	Name          string   `json:"name"`
-	DBTVersion    string   `json:"dbt_version"`
+	DbtVersion    string   `json:"dbt_version"`
 	Triggers      Triggers `json:"triggers"`
 	ExecuteSteps  []string `json:"execute_steps"`
 	Settings      Settings `json:"settings"`
@@ -45,8 +45,8 @@ type Schedule struct {
 }
 
 type GetJobsConfig struct {
-	AccountID int64
-	ProjectID *int64
+	AccountId int64
+	ProjectId *int64
 	OrderBy   *string
 }
 
@@ -59,8 +59,8 @@ func (service *Service) GetJobs(config *GetJobsConfig) (*[]Job, *errortools.Erro
 	jobs := []Job{}
 
 	params := url.Values{}
-	if config.ProjectID != nil {
-		params.Add("project_id", fmt.Sprintf("%d", *config.ProjectID))
+	if config.ProjectId != nil {
+		params.Add("project_id", fmt.Sprintf("%d", *config.ProjectId))
 	}
 	if config.OrderBy != nil {
 		params.Add("order_by", *config.OrderBy)
@@ -68,7 +68,7 @@ func (service *Service) GetJobs(config *GetJobsConfig) (*[]Job, *errortools.Erro
 
 	requestConfig := go_http.RequestConfig{
 		Method:        http.MethodGet,
-		URL:           service.url(fmt.Sprintf("accounts/%d/jobs?%s", config.AccountID, params.Encode())),
+		Url:           service.url(fmt.Sprintf("accounts/%d/jobs?%s", config.AccountId, params.Encode())),
 		ResponseModel: &jobs,
 	}
 	_, _, e := service.httpRequest(&requestConfig)

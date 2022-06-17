@@ -12,7 +12,7 @@ import (
 
 const (
 	apiName string = "dbt"
-	apiURL  string = "https://cloud.getdbt.com/api/v2"
+	apiUrl  string = "https://cloud.getdbt.com/api/v2"
 	//DateTimeLayout  string = "2006-01-02T15:04:05.000Z"
 	//defaultPageSize int64  = 100
 )
@@ -25,7 +25,7 @@ type Service struct {
 }
 
 type ServiceConfig struct {
-	APIKey string
+	ApiKey string
 }
 
 func NewService(serviceConfig *ServiceConfig) (*Service, *errortools.Error) {
@@ -33,8 +33,8 @@ func NewService(serviceConfig *ServiceConfig) (*Service, *errortools.Error) {
 		return nil, errortools.ErrorMessage("ServiceConfig must not be a nil pointer")
 	}
 
-	if serviceConfig.APIKey == "" {
-		return nil, errortools.ErrorMessage("Service APIKey not provided")
+	if serviceConfig.ApiKey == "" {
+		return nil, errortools.ErrorMessage("Service ApiKey not provided")
 	}
 
 	httpService, e := go_http.NewService(&go_http.ServiceConfig{})
@@ -43,7 +43,7 @@ func NewService(serviceConfig *ServiceConfig) (*Service, *errortools.Error) {
 	}
 
 	return &Service{
-		apiKey:      serviceConfig.APIKey,
+		apiKey:      serviceConfig.ApiKey,
 		httpService: httpService,
 	}, nil
 }
@@ -64,7 +64,7 @@ func (service *Service) httpRequest(requestConfig *go_http.RequestConfig) (*http
 	_response := Response{}
 	requestConfig.ResponseModel = &_response
 
-	request, response, e := service.httpService.HTTPRequest(requestConfig)
+	request, response, e := service.httpService.HttpRequest(requestConfig)
 	if e != nil {
 		if errorResponse.Status.UserMessage != "" {
 			e.SetMessage(errorResponse.Status.UserMessage)
@@ -80,21 +80,21 @@ func (service *Service) httpRequest(requestConfig *go_http.RequestConfig) (*http
 }
 
 func (service *Service) url(path string) string {
-	return fmt.Sprintf("%s/%s", apiURL, path)
+	return fmt.Sprintf("%s/%s", apiUrl, path)
 }
 
-func (service *Service) APIName() string {
+func (service *Service) ApiName() string {
 	return apiName
 }
 
-func (service *Service) APIKey() string {
+func (service *Service) ApiKey() string {
 	return service.apiKey
 }
 
-func (service *Service) APICallCount() int64 {
+func (service *Service) ApiCallCount() int64 {
 	return service.httpService.RequestCount()
 }
 
-func (service *Service) APIReset() {
+func (service *Service) ApiReset() {
 	service.httpService.ResetRequestCount()
 }

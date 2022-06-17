@@ -9,7 +9,7 @@ import (
 )
 
 type Account struct {
-	ID             int64                  `json:"id"`
+	Id             int64                  `json:"id"`
 	Name           string                 `json:"name"`
 	Plan           string                 `json:"plan"`
 	PendingCancel  bool                   `json:"pending_cancel"`
@@ -31,7 +31,7 @@ func (service *Service) GetAccounts(config *GetAccountsConfig) (*[]Account, *err
 
 	requestConfig := go_http.RequestConfig{
 		Method:        http.MethodGet,
-		URL:           service.url("accounts"),
+		Url:           service.url("accounts"),
 		ResponseModel: &accounts,
 	}
 	_, _, e := service.httpRequest(&requestConfig)
