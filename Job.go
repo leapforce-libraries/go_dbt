@@ -11,6 +11,7 @@ import (
 )
 
 type Job struct {
+	Id            int64    `json:"id"`
 	AccountId     int64    `json:"account_id"`
 	ProjectId     int64    `json:"project_id"`
 	EnvironmentId int64    `json:"environment_id"`
@@ -52,7 +53,6 @@ type GetJobsConfig struct {
 }
 
 // GetJobs returns all jobs
-//
 func (service *Service) GetJobs(config *GetJobsConfig) (*[]Job, *errortools.Error) {
 	if config == nil {
 		return nil, errortools.ErrorMessage("config is nil")
@@ -188,7 +188,6 @@ type RunJobResponse struct {
 }
 
 // RunJob runs a job
-//
 func (service *Service) RunJob(config *RunJobConfig) (*RunJobResponse, *errortools.Error) {
 	if config == nil {
 		return nil, errortools.ErrorMessage("config is nil")
