@@ -4,8 +4,8 @@ go 1.20
 
 require (
 	github.com/leapforce-libraries/go_errortools v0.0.0-20230306211452-9ccee0cdafe8
-	github.com/leapforce-libraries/go_http v0.0.0-20220808204824-8a0e0bdcdfd1
-	github.com/leapforce-libraries/go_types v0.0.0-20230209235725-e0c0b0948f2b
+	github.com/leapforce-libraries/go_http v0.0.0-20230420114702-86cc77fcf983
+	github.com/leapforce-libraries/go_types v0.0.0-20230425074203-34c9cae0aa4e
 	github.com/leapforce-libraries/go_utilities v0.0.0-20230320164646-a793abe241b2
 )
 
@@ -21,7 +21,7 @@ require (
 	github.com/apache/thrift v0.16.0 // indirect
 	github.com/getsentry/sentry-go v0.19.0 // indirect
 	github.com/goccy/go-json v0.9.11 // indirect
-	github.com/gofrs/uuid v4.3.1+incompatible // indirect
+	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
@@ -33,9 +33,9 @@ require (
 	github.com/klauspost/asmfmt v1.3.2 // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
-	github.com/leapforce-libraries/go_google v0.0.0-20220622124815-b1621d319c1a // indirect
+	github.com/leapforce-libraries/go_google v0.0.0-20221127152331-c262dabbdd2e // indirect
 	github.com/leapforce-libraries/go_googlecloudstorage v0.0.0-20220613120507-258e984f5c4f // indirect
-	github.com/leapforce-libraries/go_integration v0.0.0-20220801142518-7b4fe1b429bb // indirect
+	github.com/leapforce-libraries/go_integration v0.0.0-20221219180324-1d9ce9d12c4c // indirect
 	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect
 	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect

@@ -1,7 +1,6 @@
 package dbt
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -42,9 +41,10 @@ type Run struct {
 	ArtifactsSaved     bool                   `json:"artifacts_saved"`
 	ArtifactsS3Saved   string                 `json:"artifacts_s3_path"`
 	HasDocsGenerated   bool                   `json:"has_docs_generated"`
-	Trigger            json.RawMessage        `json:"triggers"`
-	Job                json.RawMessage        `json:"job"`
-	Environment        json.RawMessage        `json:"environment"`
+	Trigger            *Trigger               `json:"triggers"`
+	Job                *Job                   `json:"job"`
+	RunSteps           *[]Step                `json:"run_steps"`
+	Environment        *Environment           `json:"environment"`
 	Duration           go_types.TimeString    `json:"duration"`
 	QueuedDuration     go_types.TimeString    `json:"queued_duration"`
 	RunDuration        go_types.TimeString    `json:"run_duration"`
@@ -56,6 +56,8 @@ type GetRunsConfig struct {
 	IncludeJob         bool
 	IncludeRepository  bool
 	IncludeEnvironment bool
+	IncludeDebugLogs   bool
+	IncludeRunSteps    bool
 	JobDefinitionId    *int64
 	OrderBy            *string
 	Offset             *int64
@@ -63,7 +65,6 @@ type GetRunsConfig struct {
 }
 
 // GetRuns returns all runs
-//
 func (service *Service) GetRuns(config *GetRunsConfig) (*[]Run, *errortools.Error) {
 	if config == nil {
 		return nil, errortools.ErrorMessage("config is nil")
@@ -83,13 +84,19 @@ func (service *Service) GetRuns(config *GetRunsConfig) (*[]Run, *errortools.Erro
 	if config.IncludeEnvironment {
 		includeRelated = append(includeRelated, "environment")
 	}
+	if config.IncludeDebugLogs {
+		includeRelated = append(includeRelated, "debug_logs")
+	}
+	if config.IncludeRunSteps {
+		includeRelated = append(includeRelated, "run_steps")
+	}
 
 	params := url.Values{}
 	if len(includeRelated) > 0 {
-		params.Add("include_related", fmt.Sprintf("[%s]", strings.Join(includeRelated, ",")))
+		params.Add("include_related", fmt.Sprintf("[\"%s\"]", strings.Join(includeRelated, "\",\"")))
 	}
 	if config.JobDefinitionId != nil {
-		params.Add("job_defintion_id", fmt.Sprintf("%d", *config.JobDefinitionId))
+		params.Add("job_definition_id", fmt.Sprintf("%d", *config.JobDefinitionId))
 	}
 	if config.OrderBy != nil {
 		params.Add("order_by", *config.OrderBy)
