@@ -5,12 +5,15 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	d_types "github.com/leapforce-libraries/go_dbt/types"
 	errortools "github.com/leapforce-libraries/go_errortools"
 	go_http "github.com/leapforce-libraries/go_http"
 	go_types "github.com/leapforce-libraries/go_types"
 )
+
+const limitDefault int64 = 100
 
 type Run struct {
 	Id                 int64                  `json:"id"`
@@ -50,7 +53,7 @@ type Run struct {
 	RunDuration        go_types.TimeString    `json:"run_duration"`
 }
 
-type GetRunsConfig struct {
+type ListRunsConfig struct {
 	AccountId          int64
 	IncludeTrigger     bool
 	IncludeJob         bool
@@ -60,18 +63,50 @@ type GetRunsConfig struct {
 	IncludeRunSteps    bool
 	JobDefinitionId    *int64
 	OrderBy            *string
-	Offset             *int64
 	Limit              *int64
 }
 
-// GetRuns returns all runs
-func (service *Service) GetRuns(config *GetRunsConfig) (*[]Run, *errortools.Error) {
+// ListRuns returns all runs
+func (service *Service) ListRuns(config *ListRunsConfig) (*[]Run, *errortools.Error) {
 	if config == nil {
 		return nil, errortools.ErrorMessage("config is nil")
 	}
-	runs := []Run{}
 
-	includeRelated := []string{}
+	var runs []Run
+
+	offset := int64(0)
+
+	if config.Limit == nil {
+		limit := limitDefault
+		config.Limit = &limit
+	}
+
+	for {
+		runs_, e := service.listRuns(config, offset)
+		if e != nil {
+			return nil, e
+		}
+
+		runs = append(runs, *runs_...)
+
+		if int64(len(*runs_)) < *config.Limit {
+			break
+		}
+
+		offset += *config.Limit
+	}
+
+	return &runs, nil
+}
+
+func (service *Service) listRuns(config *ListRunsConfig, offset int64) (*[]Run, *errortools.Error) {
+	if config == nil {
+		return nil, errortools.ErrorMessage("config is nil")
+	}
+
+	var runs []Run
+
+	var includeRelated []string
 	if config.IncludeTrigger {
 		includeRelated = append(includeRelated, "trigger")
 	}
@@ -102,42 +137,85 @@ func (service *Service) GetRuns(config *GetRunsConfig) (*[]Run, *errortools.Erro
 		params.Add("order_by", *config.OrderBy)
 	}
 
-	limit := int64(100)
+	params.Add("limit", fmt.Sprintf("%d", *config.Limit))
+	params.Add("offset", fmt.Sprintf("%d", offset))
+
+	requestConfig := go_http.RequestConfig{
+		Method:        http.MethodGet,
+		Url:           service.url(fmt.Sprintf("accounts/%d/runs?%s", config.AccountId, params.Encode())),
+		ResponseModel: &runs,
+	}
+	_, _, e := service.httpRequest(&requestConfig)
+	if e != nil {
+		return nil, e
+	}
+
+	return &runs, nil
+}
+
+type ListRunsAfterConfig struct {
+	AccountId          int64
+	IncludeTrigger     bool
+	IncludeJob         bool
+	IncludeRepository  bool
+	IncludeEnvironment bool
+	IncludeDebugLogs   bool
+	IncludeRunSteps    bool
+	JobDefinitionId    *int64
+	Limit              *int64
+	After              time.Time
+}
+
+// ListRunsAfter returns all runs
+func (service *Service) ListRunsAfter(config *ListRunsAfterConfig) (*[]Run, *errortools.Error) {
+	if config == nil {
+		return nil, errortools.ErrorMessage("config is nil")
+	}
+
+	var runs []Run
+
+	var orderBy = "-created_at"
+	var config_ = ListRunsConfig{
+		AccountId:          config.AccountId,
+		IncludeTrigger:     config.IncludeTrigger,
+		IncludeJob:         config.IncludeJob,
+		IncludeRepository:  config.IncludeRepository,
+		IncludeEnvironment: config.IncludeEnvironment,
+		IncludeDebugLogs:   config.IncludeDebugLogs,
+		IncludeRunSteps:    config.IncludeRunSteps,
+		JobDefinitionId:    config.JobDefinitionId,
+		OrderBy:            &orderBy,
+		Limit:              config.Limit,
+	}
+
+	if config_.Limit == nil {
+		limit := limitDefault
+		config_.Limit = &limit
+	}
+
 	offset := int64(0)
 
-	if config.Limit != nil {
-		limit = *config.Limit
-	}
-
-	if config.Offset != nil {
-		offset = *config.Offset
-	}
-
-	params.Add("limit", fmt.Sprintf("%d", limit))
-
 	for {
-		params.Set("offset", fmt.Sprintf("%d", offset))
-
-		_runs := []Run{}
-
-		requestConfig := go_http.RequestConfig{
-			Method:        http.MethodGet,
-			Url:           service.url(fmt.Sprintf("accounts/%d/runs?%s", config.AccountId, params.Encode())),
-			ResponseModel: &_runs,
-		}
-		_, _, e := service.httpRequest(&requestConfig)
+		runs_, e := service.listRuns(&config_, offset)
 		if e != nil {
 			return nil, e
 		}
 
-		runs = append(runs, _runs...)
+		for _, run := range *runs_ {
+			if !run.CreatedAt.Value().After(config.After) {
+				goto ready
+			}
 
-		if int64(len(_runs)) < limit {
+			runs = append(runs, run)
+		}
+
+		if int64(len(*runs_)) < *config_.Limit {
 			break
 		}
 
-		offset += limit
+		offset += *config_.Limit
 	}
+ready:
 
 	return &runs, nil
 }
